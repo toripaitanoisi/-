@@ -11,7 +11,7 @@
   header { background: #fff; border-bottom: 1px solid #e0ddd6; padding: 1rem 1.5rem; }
   header h1 { font-size: 17px; font-weight: 600; letter-spacing: 0.02em; }
 
-  .container { max-width: 1000px; margin: 0 auto; padding: 1.25rem 1rem; }
+  .container { max-width: 1000px; margin: 0 auto; padding: 0.75rem 0.5rem; }
 
   .panel { background: #fff; border: 1px solid #e0ddd6; border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
   .panel-title { font-size: 11px; font-weight: 700; color: #888780; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1rem; }
@@ -93,25 +93,34 @@
   .table-wrap { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   thead tr { border-bottom: 2px solid #e0ddd6; }
-  th { padding: 7px 5px; font-weight: 600; font-size: 11px; color: #888780; cursor: pointer; user-select: none; white-space: nowrap; }
+  th { padding: 5px 4px; font-weight: 600; font-size: 11px; color: #888780; cursor: pointer; user-select: none; white-space: nowrap; }
   th:hover { color: #2c2c2a; }
   th.num { text-align: right; }
   tbody tr { border-bottom: 1px solid #f0ede6; transition: background 0.1s; }
   tbody tr:hover { background: #f7f5f0; }
-  td { padding: 7px 5px; vertical-align: top; }
+  td { padding: 5px 4px; vertical-align: top; }
   td.num { text-align: right; vertical-align: middle; }
   td.mid { vertical-align: middle; }
 
-  .badge { font-size: 10px; padding: 1px 6px; border-radius: 99px; white-space: nowrap; font-weight: 600; }
+  .badge {
+    font-size: 9px; font-weight: 600;
+    writing-mode: vertical-rl; text-orientation: mixed;
+    padding: 5px 3px; border-radius: 6px;
+    white-space: nowrap; display: inline-block; line-height: 1.2;
+  }
   .badge-d { background: #f5623a; color: #fff; }
   .badge-s { background: #18a872; color: #fff; }
   .badge-c { background: #d4880a; color: #fff; }
 
-  .ing-list { font-size: 11px; color: #888780; line-height: 1.8; }
-  .food-num { font-weight: 400; }
-  .food-num.bold { font-weight: 700; }
+  .ing-list { display: flex; flex-direction: row; flex-wrap: nowrap; gap: 5px; }
+  .ing-item { display: flex; flex-direction: column; align-items: center; gap: 1px; white-space: nowrap; }
+  .ing-emoji { font-size: 15px; line-height: 1; flex-shrink: 0; }
+  .ing-count { font-size: 10px; color: #888780; }
+  td.ing-cell { padding: 5px 2px; vertical-align: middle; }
+  td.name-cell { min-width: 60px; max-width: 85px; word-break: break-all; vertical-align: middle; line-height: 1.4; font-size: 12px; }
+  .sort-bold { font-weight: 700; }
   .sort-ic { font-size: 10px; margin-left: 2px; }
-  .count-label { font-size: 12px; color: #888780; padding: 0.5rem 0.5rem 0; }
+  .count-label { font-size: 12px; color: #888780; padding: 0.4rem 0.5rem 0; }
 </style>
 </head>
 <body>
@@ -215,12 +224,12 @@
       <table>
         <thead>
           <tr>
-            <th onclick="sortBy('種類')" style="width:58px">種類 <span class="sort-ic" id="ic-種類"></span></th>
-            <th onclick="sortBy('料理名')">料理名 <span class="sort-ic" id="ic-料理名"></span></th>
-            <th onclick="sortBy('食材')">食材 <span class="sort-ic" id="ic-食材"></span></th>
-            <th class="num" onclick="sortBy('食材数')" style="width:52px">食材数 <span class="sort-ic" id="ic-食材数"></span></th>
-            <th class="num" onclick="sortBy('エナジー')" style="width:76px">エナジー <span class="sort-ic" id="ic-エナジー"></span></th>
-            <th class="num" onclick="sortBy('ボーナス')" style="width:54px">ボーナス <span class="sort-ic" id="ic-ボーナス"></span></th>
+            <th onclick="sortBy('種類')" style="width:30px">種類 <span class="sort-ic" id="ic-種類"></span></th>
+            <th onclick="sortBy('料理名')" style="min-width:120px;max-width:180px">料理名 <span class="sort-ic" id="ic-料理名"></span></th>
+            <th onclick="sortBy('食材')" style="white-space:nowrap;">食材 <span class="sort-ic" id="ic-食材"></span></th>
+            <th class="num" onclick="sortBy('食材数')" style="width:48px">食材数 <span class="sort-ic" id="ic-食材数"></span></th>
+            <th class="num" onclick="sortBy('エナジー')" style="width:72px">エナジー <span class="sort-ic" id="ic-エナジー"></span></th>
+            <th class="num" onclick="sortBy('ボーナス')" style="width:50px">ボーナス <span class="sort-ic" id="ic-ボーナス"></span></th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -367,9 +376,23 @@ function compare(a, b) {
   return (av - bv) * sortDir;
 }
 
+const emojiMap = {
+  'ミツ':'🍯','コーン':'🌽','オイル':'🍾','カカオ':'🍫',
+  'カボチャ':'🎃','ポテト':'🥔','キノコ':'🍄‍🟫','アボカド':'🥑',
+  'ハーブ':'🌿','大豆':'🫘','エッグ':'🥚','トマト':'🍅',
+  'ミルク':'🥛','ねぎ':'🎍','ミート':'🍖','リンゴ':'🍎',
+  'ジンジャー':'🫚','コーヒー':'☕','おいしいシッポ':'🦎'
+};
+
 function ingHtml(str) {
-  if(str === '-') return '<span class="ing-list">-</span>';
-  return '<div class="ing-list">' + str.split('\n').map(s => `<div>${s}</div>`).join('') + '</div>';
+  if(str === '-') return '<div class="ing-list"><span class="ing-count">-</span></div>';
+  return '<div class="ing-list">' + str.split('\n').map(s => {
+    const m = s.match(/^(.+?)\s+(\d+)$/);
+    if(!m) return `<div class="ing-item"><span class="ing-count">${s}</span></div>`;
+    const name = m[1], count = m[2];
+    const emoji = emojiMap[name] || '🍱';
+    return `<div class="ing-item"><span class="ing-emoji">${emoji}</span><span class="ing-count">${count}</span></div>`;
+  }).join('') + '</div>';
 }
 
 function render() {
@@ -385,13 +408,14 @@ function render() {
 
   const badgeClass = {デザート:'badge-d', サラダ:'badge-s', カレー:'badge-c'};
   const isSortNum = sortKey === '食材数';
+  const isSortEn  = sortKey === 'エナジー';
   document.getElementById('tbody').innerHTML = d.map(r => `
     <tr>
       <td class="mid"><span class="badge ${badgeClass[r.種類]}">${r.種類}</span></td>
-      <td class="mid" style="word-break:break-all;">${r.料理名}</td>
-      <td>${ingHtml(r.食材)}</td>
-      <td class="num"><span class="food-num${isSortNum ? ' bold' : ''}">${r.食材数}</span></td>
-      <td class="num">${r.エナジー > 0 ? r.エナジー.toLocaleString() : '-'}</td>
+      <td class="name-cell">${r.料理名}</td>
+      <td class="ing-cell">${ingHtml(r.食材)}</td>
+      <td class="num"><span class="${isSortNum ? 'sort-bold' : ''}">${r.食材数}</span></td>
+      <td class="num"><span class="${isSortEn ? 'sort-bold' : ''}">${r.エナジー > 0 ? r.エナジー.toLocaleString() : '-'}</span></td>
       <td class="num">${r.ボーナス > 0 ? r.ボーナス + '%' : '-'}</td>
     </tr>
   `).join('');
