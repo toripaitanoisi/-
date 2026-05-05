@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ポケモンスリープ レシピ一覧</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif; background-color: rgb(255,255,255); color: #2c2c2a; font-size: 14px; line-height: 1.6; }
+
+  header { background: #f7f5f0; border-bottom: 1px solid #e0ddd6; padding: 1rem 1.5rem; }
+  header h1 { font-size: 17px; font-weight: 600; letter-spacing: 0.02em; }
+
+  .container { max-width: 1000px; margin: 0 auto; padding: 0.75rem 0.5rem; }
+
+  .panel { background: #f7f5f0; border: 1px solid #e0ddd6; border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+  .panel-title { font-size: 11px; font-weight: 700; color: #888780; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1rem; }
+
+  .capacity-display { display: flex; align-items: baseline; gap: 0.4rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+  .capacity-num { font-size: 38px; font-weight: 700; color: #3b6d11; line-height: 1; }
+  .capacity-label { font-size: 13px; color: #888780; }
+  .cap-note { font-size: 12px; color: #639922; font-weight: 600; }
+
+  .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 560px) { .controls-grid { grid-template-columns: 1fr; } }
+
+  .control-group > .ctrl-label { display: block; font-size: 11px; font-weight: 700; color: #888780; margin-bottom: 6px; letter-spacing: 0.06em; }
+
+  .control-group select {
+    width: 100%; padding: 7px 28px 7px 10px; border: 1px solid #d3d1c7; border-radius: 8px;
+    background: #f7f5f0; font-size: 13px; color: #2c2c2a; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888780'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center; cursor: pointer;
+  }
+  .control-group select:focus { outline: none; border-color: #639922; }
+
+  /* キャンチケ トグル */
+  .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 2px; }
+  .toggle-wrap { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+  .toggle-wrap input { opacity: 0; width: 0; height: 0; position: absolute; }
+  .toggle-track {
+    position: absolute; inset: 0; border-radius: 99px;
+    background: #d3d1c7; transition: background 0.2s; cursor: pointer;
+  }
+  .toggle-wrap input:checked + .toggle-track { background: #639922; }
+  .toggle-thumb {
+    position: absolute; top: 3px; left: 3px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: #fff; transition: transform 0.2s; pointer-events: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .toggle-wrap input:checked ~ .toggle-thumb { transform: translateX(20px); }
+  .toggle-label { font-size: 13px; color: #2c2c2a; }
+  .toggle-sub { font-size: 11px; color: #888780; margin-top: 1px; }
+
+  /* 鍋拡張アコーディオン */
+  .expand-area { display: none; margin-top: 0.75rem; }
+  .expand-area.open { display: block; }
+
+  /* 全件チェック */
+  .nofilter-row { margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid #f0ede6; }
+  .nofilter-row label { font-size: 12px; color: #888780; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+
+  /* 種類フィルターチップ */
+  .filter-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 1rem; }
+  .filter-label { font-size: 12px; color: #888780; }
+  .chip {
+    font-size: 12px; padding: 4px 14px; border-radius: 99px;
+    border: 1.5px solid; cursor: pointer; transition: all 0.15s; font-weight: 500;
+    background: transparent;
+  }
+  .chip-all  { border-color: #aaa; color: #555; }
+  .chip-all.active  { background: #2c2c2a; color: #fff; border-color: #2c2c2a; }
+  .chip-d { border-color: #e8836a; color: #c0502a; }
+  .chip-d.active { background: #e8623a; color: #fff; border-color: #e8623a; }
+  .chip-s { border-color: #2db88a; color: #0a7a5a; }
+  .chip-s.active { background: #18a872; color: #fff; border-color: #18a872; }
+  .chip-c { border-color: #e0a030; color: #8a5a00; }
+  .chip-c.active { background: #d4880a; color: #fff; border-color: #d4880a; }
+
+  /* テーブル */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { border-bottom: 2px solid #e0ddd6; }
+  th { padding: 5px 4px; font-weight: 600; font-size: 11px; color: #888780; cursor: pointer; user-select: none; white-space: nowrap; }
+  th:hover { color: #2c2c2a; }
+  th.num { text-align: right; }
+  tbody tr { border-bottom: 1px solid #e8e5de; transition: background 0.1s; }
+  tbody tr:hover { background: #fff; }
+  td { padding: 5px 4px; vertical-align: top; }
+  td.num { text-align: right; vertical-align: middle; }
+  td.mid { vertical-align: middle; }
+
+  .badge {
+    font-size: 9px; font-weight: 600;
+    writing-mode: vertical-rl; text-orientation: mixed;
+    padding: 5px 3px; border-radius: 6px;
+    white-space: nowrap; display: inline-block; line-height: 1.2;
+  }
+  .badge-d { background: #f5623a; color: #fff; }
+  .badge-s { background: #18a872; color: #fff; }
+  .badge-c { background: #d4880a; color: #fff; }
+
+  .ing-list { display: flex; flex-direction: row; flex-wrap: nowrap; gap: 5px; }
+  .ing-item { display: flex; flex-direction: column; align-items: center; gap: 1px; white-space: nowrap; }
+  .ing-emoji { font-size: 15px; line-height: 1; flex-shrink: 0; }
+  .ing-count { font-size: 10px; color: #888780; }
+  td.ing-cell { padding: 5px 2px; vertical-align: middle; }
+  td.name-cell { min-width: 60px; max-width: 85px; word-break: break-all; vertical-align: middle; line-height: 1.4; font-size: 12px; }
+  .sort-bold { font-weight: 700; }
+  .sort-ic { font-size: 10px; margin-left: 2px; }
+  .count-label { font-size: 12px; color: #888780; padding: 0.4rem 0.5rem 0; }
+
+  /* 食材フィルター */
+  .ing-filter-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .ing-btn {
+    position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px;
+    padding: 4px 8px; border-radius: 8px; border: 1px solid #e0ddd6;
+    background: #fff; cursor: pointer; min-width: 44px; transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .ing-btn.inc { background: #e6f4d4; border-color: #639922; }
+  .ing-btn.exc { background: #fcebeb; border-color: #e24b4a; }
+  .ing-btn .ing-badge {
+    position: absolute; top: -6px; right: -6px;
+    width: 16px; height: 16px; border-radius: 50%;
+    font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+  }
+  .ing-btn.inc .ing-badge { background: #639922; color: #fff; }
+  .ing-btn.exc .ing-badge { background: #e24b4a; color: #fff; }
+  .ing-btn .ing-e { font-size: 20px; line-height: 1; }
+  .ing-btn .ing-n { font-size: 9px; color: #888780; }
+  .ing-filter-summary { font-size: 11px; color: #888780; line-height: 1.6; min-height: 1.6em; }
+  .ing-reset {
+    margin-top: 8px; font-size: 11px; padding: 3px 12px; border-radius: 99px;
+    border: 1px solid #d3d1c7; background: transparent; color: #888780; cursor: pointer;
+  }
+  .ing-reset:hover { border-color: #888780; color: #2c2c2a; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ポケモンスリープ レシピ一覧</h1>
+</header>
+
+<div class="container">
+
+  <!-- 鍋設定パネル -->
+  <div class="panel">
+    <div class="panel-title">鍋の設定</div>
+    <div class="capacity-display">
+      <span class="capacity-num" id="cap-num">81</span>
+      <span class="capacity-label">が鍋容量</span>
+      <span class="cap-note" id="cap-note">（食材数 81 以下を表示）</span>
+    </div>
+
+    <div class="controls-grid">
+      <!-- キャンチケ（先頭） -->
+      <div class="control-group">
+        <span class="ctrl-label">キャンチケ</span>
+        <div class="toggle-row">
+          <label class="toggle-wrap">
+            <input type="checkbox" id="chk-ticket" onchange="updateCapacity()">
+            <div class="toggle-track"></div>
+            <div class="toggle-thumb"></div>
+          </label>
+          <div>
+            <div class="toggle-label" id="ticket-label">なし</div>
+            <div class="toggle-sub" id="ticket-sub" style="display:none;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 鍋拡張スキル -->
+      <div class="control-group">
+        <span class="ctrl-label">鍋拡張</span>
+        <select id="sel-skill" onchange="updateCapacity()">
+          <option value="0">スキルなし（デフォルト）</option>
+          <optgroup label="── 料理パワーアップS">
+            <option value="31">料理パワーアップ Lv7（+31）</option>
+            <option value="27">料理パワーアップ Lv6（+27）</option>
+            <option value="22">料理パワーアップ Lv5（+22）</option>
+            <option value="17">料理パワーアップ Lv4（+17）</option>
+            <option value="12">料理パワーアップ Lv3（+12）</option>
+            <option value="10">料理パワーアップ Lv2（+10）</option>
+            <option value="7" >料理パワーアップ Lv1（+7）</option>
+          </optgroup>
+          <optgroup label="── マイナス">
+            <option value="24">マイナス Lv7（+24）</option>
+            <option value="20">マイナス Lv6（+20）</option>
+            <option value="16">マイナス Lv5（+16）</option>
+            <option value="12">マイナス Lv4（+12）</option>
+            <option value="9" >マイナス Lv3（+9）</option>
+            <option value="7" >マイナス Lv2（+7）</option>
+            <option value="5" >マイナス Lv1（+5）</option>
+          </optgroup>
+        </select>
+      </div>
+    </div>
+
+    <!-- 鍋拡張回数（チェックボックスで開閉） -->
+    <div style="margin-top:0.75rem;">
+      <label style="font-size:12px;color:#888780;display:flex;align-items:center;gap:6px;cursor:pointer;">
+        <input type="checkbox" id="chk-expand" onchange="toggleExpand()">
+        鍋容量を変更する（デフォルト：81）
+      </label>
+    </div>
+    <div class="expand-area" id="expand-area">
+      <div class="control-group" style="max-width:280px; margin-top:0.5rem;">
+        <span class="ctrl-label">鍋の容量ベース</span>
+        <select id="sel-expand" onchange="updateCapacity()">
+          <option value="81" selected>容量 81（4回拡張）</option>
+          <option value="78">容量 78（3回拡張）</option>
+          <option value="75">容量 75（2回拡張）</option>
+          <option value="72">容量 72（1回拡張）</option>
+          <option value="69">容量 69（拡張前）</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="nofilter-row">
+      <label>
+        <input type="checkbox" id="chk-nofilter" onchange="updateCapacity()">
+        鍋容量でフィルターしない（全件表示）
+      </label>
+    </div>
+  </div>
+
+  <!-- 食材フィルター -->
+  <div class="panel" id="ing-filter-panel" style="padding: 0.6rem 1rem 0.6rem;">
+    <div class="panel-title" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0;">
+      <span>食材フィルター</span>
+      <div class="expand-toggle" onclick="toggleIngFilter()" id="ing-filter-toggle" style="margin-top:0;">
+        食材で絞り込む<span class="expand-ic" id="ing-filter-arrow">⌄</span>
+      </div>
+    </div>
+    <div id="ing-filter-area" style="display:none;margin-top:8px;">
+      <div style="font-size:11px;color:#888780;margin-bottom:8px;">タップで　なし → ○（含む）→ ✕（除外）と切り替え</div>
+      <div class="ing-filter-grid" id="ing-filter-grid"></div>
+      <div style="padding-top:8px;border-top:1px solid #e0ddd6;">
+        <div class="ing-filter-summary" id="ing-filter-summary">条件なし</div>
+        <button class="ing-reset" onclick="resetIngFilter()">リセット</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 種類フィルター -->
+  <div class="filter-row">
+    <span class="filter-label">絞り込み：</span>
+    <button class="chip chip-all active" id="btn-all"      onclick="filterType('all')">すべて</button>
+    <button class="chip chip-d"          id="btn-デザート"  onclick="filterType('デザート')">デザート</button>
+    <button class="chip chip-s"          id="btn-サラダ"    onclick="filterType('サラダ')">サラダ</button>
+    <button class="chip chip-c"          id="btn-カレー"    onclick="filterType('カレー')">カレー</button>
+  </div>
+
+  <!-- テーブル -->
+  <div class="panel" style="padding: 0.75rem 0.5rem;">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="sortBy('種類')" style="width:30px">種類 <span class="sort-ic" id="ic-種類"></span></th>
+            <th onclick="sortBy('料理名')" style="min-width:120px;max-width:180px">料理名 <span class="sort-ic" id="ic-料理名"></span></th>
+            <th onclick="sortBy('食材')" style="white-space:nowrap;">食材 <span class="sort-ic" id="ic-食材"></span></th>
+            <th class="num" onclick="sortBy('食材数')" style="width:48px">食材数 <span class="sort-ic" id="ic-食材数"></span></th>
+            <th class="num" onclick="sortBy('エナジー')" style="width:72px">エナジー <span class="sort-ic" id="ic-エナジー"></span></th>
+            <th class="num" onclick="sortBy('ボーナス')" style="width:50px">ボーナス <span class="sort-ic" id="ic-ボーナス"></span></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="count-label" id="count-label"></div>
+  </div>
+
+</div>
+
+<script>
+const raw = [
+  {種類:'デザート',料理名:'みつあつめチョコワッフル',食材:'ミツ 38\nコーン 28\nオイル 28\nカカオ 21',食材数:115,エナジー:25484,ボーナス:78},
+  {種類:'サラダ',料理名:'ごろごろねっとうサラダ',食材:'カボチャ 20\nポテト 30\nコーン 18\nキノコ 27',食材数:95,エナジー:25356,ボーナス:61},
+  {種類:'サラダ',料理名:'じならしワカモレチップス',食材:'アボカド 28\nコーン 25\nハーブ 30\n大豆 22',食材数:105,エナジー:25162,ボーナス:78},
+  {種類:'カレー',料理名:'しんりょくアボカドグラタン',食材:'アボカド 22\nポテト 20\nミルク 41\nオイル 32',食材数:115,エナジー:24802,ボーナス:78},
+  {種類:'デザート',料理名:'ドキドキこわいかおパンケーキ',食材:'カボチャ 18\nエッグ 24\nミツ 32\nトマト 29',食材数:103,エナジー:24354,ボーナス:78},
+  {種類:'デザート',料理名:'ドオーのエクレア',食材:'カカオ 30\nミルク 26\nコーヒー 24\nミツ 22',食材数:102,エナジー:20885,ボーナス:61},
+  {種類:'カレー',料理名:'いあいぎりすき焼きカレー',食材:'ねぎ 27\nミート 26\nミツ 26\nエッグ 22',食材数:101,エナジー:20655,ボーナス:61},
+  {種類:'サラダ',料理名:'まけんきコーヒーサラダ',食材:'コーヒー 28\nミート 28\nオイル 22\nポテト 22',食材数:100,エナジー:20218,ボーナス:61},
+  {種類:'サラダ',料理名:'りんごさんヨーグルトサラダ',食材:'エッグ 35\nリンゴ 28\nトマト 23\nミルク 18',食材数:104,エナジー:19293,ボーナス:78},
+  {種類:'カレー',料理名:'めざめるパワーシチュー',食材:'大豆 28\nトマト 25\nキノコ 23\nコーヒー 16',食材数:92,エナジー:19061,ボーナス:61},
+  {種類:'デザート',料理名:'スパークスパイスコーラ',食材:'リンゴ 35\nジンジャー 20\nねぎ 20\nコーヒー 12',食材数:87,エナジー:17494,ボーナス:61},
+  {種類:'カレー',料理名:'なりきりバケッチャシチュー',食材:'キノコ 25\nポテト 18\nミート 16\nカボチャ 10',食材数:69,エナジー:15621,ボーナス:48},
+  {種類:'デザート',料理名:'フラワーギフトマカロン',食材:'カカオ 25\nエッグ 25\nミツ 17\nミルク 10',食材数:77,エナジー:13834,ボーナス:48},
+  {種類:'カレー',料理名:'れんごくコーンキーマカレー',食材:'ハーブ 27\nミート 24\nコーン 14\nジンジャー 12',食材数:77,エナジー:13690,ボーナス:48},
+  {種類:'サラダ',料理名:'はなふぶきミモザサラダ',食材:'エッグ 25\nオイル 17\nポテト 15\nミート 12',食材数:69,エナジー:11811,ボーナス:47},
+  {種類:'サラダ',料理名:'ニンジャサラダ',食材:'ジンジャー 11\n大豆 19\nキノコ 12\nねぎ 15',食材数:57,エナジー:11659,ボーナス:48},
+  {種類:'サラダ',料理名:'ワカクササラダ',食材:'オイル 22\nコーン 17\nトマト 14\nポテト 9',食材数:62,エナジー:11393,ボーナス:48},
+  {種類:'デザート',料理名:'おちゃかいコーンスコーン',食材:'リンゴ 20\nジンジャー 20\nコーン 18\nミルク 9',食材数:67,エナジー:10925,ボーナス:48},
+  {種類:'カレー',料理名:'ニンジャカレー',食材:'大豆 24\nねぎ 12\nミート 9\nキノコ 5',食材数:50,エナジー:9445,ボーナス:48},
+  {種類:'カレー',料理名:'ぜったいねむりバターカレー',食材:'ポテト 18\nカカオ 12\nトマト 15\nミルク 10',食材数:55,エナジー:9010,ボーナス:35},
+  {種類:'サラダ',料理名:'クロスチョップドサラダ',食材:'エッグ 20\nミート 15\nコーン 11\nトマト 10',食材数:56,エナジー:8755,ボーナス:35},
+  {種類:'サラダ',料理名:'ヤドンテールのペッパーサラダ',食材:'ハーブ 10\nオイル 15\nおいしいシッポ 10',食材数:35,エナジー:8169,ボーナス:25},
+  {種類:'サラダ',料理名:'めいそうスイートサラダ',食材:'リンゴ 21\nミツ 16\nコーン 12',食材数:49,エナジー:7675,ボーナス:48},
+  {種類:'デザート',料理名:'プリンのプリンアラモード',食材:'ミツ 20\nエッグ 15\nリンゴ 10\nミルク 10',食材数:55,エナジー:7594,ボーナス:35},
+  {種類:'カレー',料理名:'あぶりテールカレー',食材:'おいしいシッポ 8\nハーブ 25',食材数:33,エナジー:7483,ボーナス:25},
+  {種類:'デザート',料理名:'かたやぶりコーンティラミス',食材:'コーヒー 14\nコーン 14\nミルク 12',食材数:40,エナジー:7125,ボーナス:35},
+  {種類:'デザート',料理名:'はやおきコーヒーゼリー',食材:'コーヒー 16\nミルク 14\nミツ 12',食材数:42,エナジー:6793,ボーナス:35},
+  {種類:'デザート',料理名:'だいばくはつポップコーン',食材:'コーン 15\nオイル 14\nミルク 7',食材数:36,エナジー:6048,ボーナス:35},
+  {種類:'カレー',料理名:'からくちネギもりカレー',食材:'ねぎ 14\nジンジャー 10\nハーブ 8',食材数:32,エナジー:5900,ボーナス:25},
+  {種類:'サラダ',料理名:'キノコのほうしサラダ',食材:'キノコ 17\nオイル 8\nトマト 8',食材数:33,エナジー:5859,ボーナス:25},
+  {種類:'カレー',料理名:'ピヨピヨパンチ辛口カレー',食材:'コーヒー 11\nハーブ 11\nミツ 11',食材数:33,エナジー:5702,ボーナス:35},
+  {種類:'デザート',料理名:'ちからもちソイドーナッツ',食材:'オイル 12\nカカオ 7\n大豆 16',食材数:35,エナジー:5547,ボーナス:35},
+  {種類:'サラダ',料理名:'オーバーヒートサラダ',食材:'ハーブ 17\nジンジャー 10\nトマト 8',食材数:35,エナジー:5225,ボーナス:25},
+  {種類:'デザート',料理名:'ネロリのデトックスティー',食材:'ジンジャー 11\nリンゴ 15\nキノコ 9',食材数:35,エナジー:5065,ボーナス:25},
+  {種類:'サラダ',料理名:'くいしんぼうポテトサラダ',食材:'ポテト 14\nエッグ 9\nミート 7\nリンゴ 6',食材数:36,エナジー:5040,ボーナス:25},
+  {種類:'デザート',料理名:'ふくつのジンジャークッキー',食材:'ミツ 14\nジンジャー 12\nカカオ 5\nエッグ 4',食材数:35,エナジー:4921,ボーナス:25},
+  {種類:'デザート',料理名:'あくまのキッスフルーツオレ',食材:'リンゴ 11\nミルク 9\nミツ 7\nカカオ 8',食材数:35,エナジー:4734,ボーナス:25},
+  {種類:'カレー',料理名:'じゅうなんコーンシチュー',食材:'コーン 14\nミルク 8\nポテト 8',食材数:30,エナジー:4670,ボーナス:25},
+  {種類:'カレー',料理名:'おやこあいカレー',食材:'ミツ 12\nエッグ 8\nリンゴ 11\nポテト 4',食材数:35,エナジー:4523,ボーナス:25},
+  {種類:'カレー',料理名:'キノコのほうしカレー',食材:'キノコ 14\nポテト 9',食材数:23,エナジー:4162,ボーナス:20},
+  {種類:'サラダ',料理名:'ムラっけチョコミートサラダ',食材:'カカオ 14\nミート 9',食材数:23,エナジー:3665,ボーナス:21},
+  {種類:'デザート',料理名:'あまいかおりチョコケーキ',食材:'ミツ 9\nカカオ 8\nミルク 7',食材数:24,エナジー:3378,ボーナス:21},
+  {種類:'カレー',料理名:'ビルドアップマメカレー',食材:'大豆 12\nミート 6\nエッグ 4\nハーブ 4',食材数:26,エナジー:3372,ボーナス:21},
+  {種類:'デザート',料理名:'はなびらのまいチョコタルト',食材:'カカオ 11\nリンゴ 11',食材数:22,エナジー:3314,ボーナス:25},
+  {種類:'デザート',料理名:'はりきりプロテインスムージー',食材:'大豆 15\nカカオ 8',食材数:23,エナジー:3263,ボーナス:20},
+  {種類:'カレー',料理名:'ほっこりホワイトシチュー',食材:'ミルク 10\nポテト 8\nキノコ 4',食材数:22,エナジー:3181,ボーナス:20},
+  {種類:'サラダ',料理名:'うるおいとうふサラダ',食材:'大豆 15\nトマト 9',食材数:24,エナジー:3113,ボーナス:25},
+  {種類:'サラダ',料理名:'ばかぢからワイルドサラダ',食材:'ミート 9\nジンジャー 6\nエッグ 5\nポテト 3',食材数:23,エナジー:3046,ボーナス:20},
+  {種類:'デザート',料理名:'おおきいマラサダ',食材:'オイル 10\nミルク 7\nミツ 6',食材数:23,エナジー:3015,ボーナス:21},
+  {種類:'サラダ',料理名:'モーモーカプレーゼ',食材:'ミルク 12\nトマト 6\nオイル 5',食材数:23,エナジー:2942,ボーナス:21},
+  {種類:'サラダ',料理名:'めんえきねぎサラダ',食材:'ジンジャー 5\nねぎ 10',食材数:15,エナジー:2845,ボーナス:19},
+  {種類:'サラダ',料理名:'みだれづきコーンサラダ',食材:'コーン 9\nオイル 8',食材数:17,エナジー:2785,ボーナス:25},
+  {種類:'サラダ',料理名:'メロメロりんごのチーズサラダ',食材:'リンゴ 15\nミルク 5\nオイル 3',食材数:23,エナジー:2655,ボーナス:21},
+  {種類:'カレー',料理名:'とけるオムカレー',食材:'エッグ 10\nトマト 6',食材数:16,エナジー:2150,ボーナス:19},
+  {種類:'サラダ',料理名:'ねっぷうとうふサラダ',食材:'ハーブ 6\n大豆 10',食材数:16,エナジー:2114,ボーナス:19},
+  {種類:'カレー',料理名:'サンパワートマトカレー',食材:'トマト 10\nハーブ 5',食材数:15,エナジー:2078,ボーナス:19},
+  {種類:'カレー',料理名:'ひでりカツレツカレー',食材:'ミート 10\nオイル 5',食材数:15,エナジー:1942,ボーナス:19},
+  {種類:'デザート',料理名:'マイペースやさいジュース',食材:'リンゴ 7\nトマト 9',食材数:16,エナジー:1924,ボーナス:19},
+  {種類:'デザート',料理名:'かるわざソイケーキ',食材:'エッグ 8\n大豆 7',食材数:15,エナジー:1924,ボーナス:19},
+  {種類:'デザート',料理名:'ひのこのジンジャーティー',食材:'リンゴ 7\nジンジャー 9',食材数:16,エナジー:1913,ボーナス:19},
+  {種類:'カレー',料理名:'満腹チーズバーグカレー',食材:'ミルク 8\nミート 8',食材数:16,エナジー:1910,ボーナス:19},
+  {種類:'デザート',料理名:'じゅくせいスイートポテト',食材:'ポテト 9\nミルク 5',食材数:14,エナジー:1907,ボーナス:19},
+  {種類:'サラダ',料理名:'ゆきかきシーザーサラダ',食材:'ミルク 10\nミート 6',食材数:16,エナジー:1898,ボーナス:19},
+  {種類:'デザート',料理名:'ねがいごとアップルパイ',食材:'リンゴ 12\nミルク 4',食材数:16,エナジー:1748,ボーナス:19},
+  {種類:'デザート',料理名:'クラフトサイコソーダ',食材:'ミツ 9',食材数:9,エナジー:1079,ボーナス:19},
+  {種類:'サラダ',料理名:'あんみんトマトサラダ',食材:'トマト 8',食材数:8,エナジー:1045,ボーナス:19},
+  {種類:'サラダ',料理名:'マメハムサラダ',食材:'ミート 8',食材数:8,エナジー:978,ボーナス:19},
+  {種類:'カレー',料理名:'マメバーグカレー',食材:'ミート 7',食材数:7,エナジー:856,ボーナス:19},
+  {種類:'サラダ',料理名:'とくせんリンゴサラダ',食材:'リンゴ 8',食材数:8,エナジー:855,ボーナス:19},
+  {種類:'デザート',料理名:'とくせんリンゴジュース',食材:'リンゴ 8',食材数:8,エナジー:855,ボーナス:19},
+  {種類:'カレー',料理名:'ベイビィハニーカレー',食材:'ミツ 7',食材数:7,エナジー:839,ボーナス:19},
+  {種類:'カレー',料理名:'たんじゅんホワイトシチュー',食材:'ミルク 7',食材数:7,エナジー:814,ボーナス:19},
+  {種類:'デザート',料理名:'モーモーホットミルク',食材:'ミルク 7',食材数:7,エナジー:814,ボーナス:19},
+  {種類:'カレー',料理名:'とくせんリンゴカレー',食材:'リンゴ 7',食材数:7,エナジー:748,ボーナス:19},
+  {種類:'カレー',料理名:'ごちゃまぜカレー',食材:'-',食材数:1,エナジー:0,ボーナス:0},
+  {種類:'サラダ',料理名:'ごちゃまぜサラダ',食材:'-',食材数:1,エナジー:0,ボーナス:0},
+  {種類:'デザート',料理名:'ごちゃまぜジュース',食材:'-',食材数:1,エナジー:0,ボーナス:0},
+];
+
+const ticketBonus = {69:35, 72:36, 75:38, 78:39, 81:41};
+
+let capacity = 81;
+let noFilter = false;
+let sortKey = 'エナジー';
+let sortDir = -1;
+let currentFilter = 'all';
+
+function toggleExpand() {
+  const area = document.getElementById('expand-area');
+  const checked = document.getElementById('chk-expand').checked;
+  area.classList.toggle('open', checked);
+}
+
+function updateCapacity() {
+  noFilter = document.getElementById('chk-nofilter').checked;
+  const base = parseInt(document.getElementById('sel-expand').value);
+  const skillVal = parseInt(document.getElementById('sel-skill').value);
+  const hasTicket = document.getElementById('chk-ticket').checked;
+  const tb = ticketBonus[base] || 35;
+
+  document.getElementById('ticket-label').textContent = hasTicket ? 'あり' : 'なし';
+  const subEl = document.getElementById('ticket-sub');
+  if(hasTicket) { subEl.textContent = `+${tb} ボーナス`; subEl.style.display = 'block'; }
+  else { subEl.textContent = ''; subEl.style.display = 'none'; }
+
+  capacity = base + skillVal + (hasTicket ? tb : 0);
+  document.getElementById('cap-num').textContent = noFilter ? '∞' : capacity;
+  document.getElementById('cap-note').textContent = noFilter ? '' : `（食材数 ${capacity} 以下を表示）`;
+  render();
+}
+
+function filterType(t) {
+  currentFilter = t;
+  document.querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + t).classList.add('active');
+  render();
+}
+
+function sortBy(key) {
+  if(sortKey === key) sortDir *= -1;
+  else { sortKey = key; sortDir = (key === 'エナジー' || key === '食材数' || key === 'ボーナス') ? -1 : 1; }
+  render();
+}
+
+function compare(a, b) {
+  if(sortKey === '食材数') {
+    const diff = (a.食材数 - b.食材数) * sortDir;
+    if(diff !== 0) return diff;
+    return b.エナジー - a.エナジー;
+  }
+  const av = a[sortKey], bv = b[sortKey];
+  if(typeof av === 'string') return av.localeCompare(bv, 'ja') * sortDir;
+  return (av - bv) * sortDir;
+}
+
+// 食材フィルター
+const ingList = [
+  {name:'ミツ',e:'🍯'},{name:'コーン',e:'🌽'},{name:'オイル',e:'🍾'},
+  {name:'カカオ',e:'🍫'},{name:'カボチャ',e:'🎃'},{name:'ポテト',e:'🥔'},
+  {name:'キノコ',e:'🍄‍🟫'},{name:'アボカド',e:'🥑'},{name:'ハーブ',e:'🌿'},
+  {name:'大豆',e:'🫘'},{name:'エッグ',e:'🥚'},{name:'トマト',e:'🍅'},
+  {name:'ミルク',e:'🥛'},{name:'ねぎ',e:'🎍'},{name:'ミート',e:'🍖'},
+  {name:'リンゴ',e:'🍎'},{name:'ジンジャー',e:'🫚'},{name:'コーヒー',e:'☕'},
+  {name:'おいしいシッポ',e:'🦎'},
+];
+const ingStates = {};
+ingList.forEach(i => ingStates[i.name] = 0);
+
+function toggleIngFilter() {
+  const area = document.getElementById('ing-filter-area');
+  const toggle = document.getElementById('ing-filter-toggle');
+  const arrow = document.getElementById('ing-filter-arrow');
+  const isOpen = area.style.display === 'none';
+  area.style.display = isOpen ? 'block' : 'none';
+  toggle.classList.toggle('open', isOpen);
+  if(isOpen) renderIngGrid();
+}
+
+function cycleIng(name) {
+  ingStates[name] = (ingStates[name] + 1) % 3;
+  renderIngGrid();
+  render();
+}
+
+function resetIngFilter() {
+  ingList.forEach(i => ingStates[i.name] = 0);
+  renderIngGrid();
+  render();
+}
+
+function renderIngGrid() {
+  const grid = document.getElementById('ing-filter-grid');
+  grid.innerHTML = ingList.map(({name, e}) => {
+    const s = ingStates[name];
+    const cls = s === 1 ? 'inc' : s === 2 ? 'exc' : '';
+    const badge = s === 1 ? '<span class="ing-badge">○</span>' : s === 2 ? '<span class="ing-badge">✕</span>' : '';
+    const dispName = name === 'おいしいシッポ' ? 'シッポ' : name;
+    return `<div class="ing-btn ${cls}" onclick="cycleIng('${name}')">${badge}<span class="ing-e">${e}</span><span class="ing-n">${dispName}</span></div>`;
+  }).join('');
+
+  const inc = ingList.filter(i => ingStates[i.name] === 1).map(i => i.name);
+  const exc = ingList.filter(i => ingStates[i.name] === 2).map(i => i.name);
+  let txt = '';
+  if(inc.length) txt += `○ ${inc.join('・')} のどれかを含む`;
+  if(inc.length && exc.length) txt += '　かつ　';
+  if(exc.length) txt += `✕ ${exc.join('・')} を含まない`;
+  if(!inc.length && !exc.length) txt = '条件なし';
+  document.getElementById('ing-filter-summary').textContent = txt;
+}
+
+const emojiMap = {
+  'ミツ':'🍯','コーン':'🌽','オイル':'🍾','カカオ':'🍫',
+  'カボチャ':'🎃','ポテト':'🥔','キノコ':'🍄‍🟫','アボカド':'🥑',
+  'ハーブ':'🌿','大豆':'🫘','エッグ':'🥚','トマト':'🍅',
+  'ミルク':'🥛','ねぎ':'🎍','ミート':'🍖','リンゴ':'🍎',
+  'ジンジャー':'🫚','コーヒー':'☕','おいしいシッポ':'🦎'
+};
+
+function ingHtml(str) {
+  if(str === '-') return '<div class="ing-list"><span class="ing-count">-</span></div>';
+  return '<div class="ing-list">' + str.split('\n').map(s => {
+    const m = s.match(/^(.+?)\s+(\d+)$/);
+    if(!m) return `<div class="ing-item"><span class="ing-count">${s}</span></div>`;
+    const name = m[1], count = m[2];
+    const emoji = emojiMap[name] || '🍱';
+    return `<div class="ing-item"><span class="ing-emoji">${emoji}</span><span class="ing-count">${count}</span></div>`;
+  }).join('') + '</div>';
+}
+
+function render() {
+  let d = [...raw];
+  if(currentFilter !== 'all') d = d.filter(r => r.種類 === currentFilter);
+  if(!noFilter) d = d.filter(r => r.食材数 <= capacity);
+
+  // 食材フィルター
+  const incNames = ingList.filter(i => ingStates[i.name] === 1).map(i => i.name);
+  const excNames = ingList.filter(i => ingStates[i.name] === 2).map(i => i.name);
+  const getNames = r => r.食材.split('\n').map(s => { const m = s.match(/^(.+?)\s+\d+$/); return m ? m[1] : ''; });
+  if(incNames.length) d = d.filter(r => { const ns = getNames(r); return incNames.some(n => ns.includes(n)); });
+  if(excNames.length) d = d.filter(r => { const ns = getNames(r); return !excNames.some(n => ns.includes(n)); });
+
+  d.sort(compare);
+
+  ['種類','料理名','食材','食材数','エナジー','ボーナス'].forEach(k => {
+    const ic = document.getElementById('ic-' + k);
+    if(ic) ic.textContent = sortKey === k ? (sortDir === 1 ? '↑' : '↓') : '';
+  });
+
+  const badgeClass = {デザート:'badge-d', サラダ:'badge-s', カレー:'badge-c'};
+  const isSortNum = sortKey === '食材数';
+  const isSortEn  = sortKey === 'エナジー';
+  document.getElementById('tbody').innerHTML = d.map(r => `
+    <tr>
+      <td class="mid"><span class="badge ${badgeClass[r.種類]}">${r.種類}</span></td>
+      <td class="name-cell">${r.料理名}</td>
+      <td class="ing-cell">${ingHtml(r.食材)}</td>
+      <td class="num"><span class="${isSortNum ? 'sort-bold' : ''}">${r.食材数}</span></td>
+      <td class="num"><span class="${isSortEn ? 'sort-bold' : ''}">${r.エナジー > 0 ? r.エナジー.toLocaleString() : '-'}</span></td>
+      <td class="num">${r.ボーナス > 0 ? r.ボーナス + '%' : '-'}</td>
+    </tr>
+  `).join('');
+
+  document.getElementById('count-label').textContent = `${d.length} 件表示`;
+}
+
+render();
+</script>
+</body>
+</html>
