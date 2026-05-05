@@ -6,14 +6,14 @@
 <title>ポケモンスリープ レシピ一覧</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif; background: #f7f5f0; color: #2c2c2a; font-size: 14px; line-height: 1.6; }
+  body { font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif; background-color: rgb(255,255,255); color: #2c2c2a; font-size: 14px; line-height: 1.6; }
 
-  header { background: #fff; border-bottom: 1px solid #e0ddd6; padding: 1rem 1.5rem; }
+  header { background: #f7f5f0; border-bottom: 1px solid #e0ddd6; padding: 1rem 1.5rem; }
   header h1 { font-size: 17px; font-weight: 600; letter-spacing: 0.02em; }
 
   .container { max-width: 1000px; margin: 0 auto; padding: 0.75rem 0.5rem; }
 
-  .panel { background: #fff; border: 1px solid #e0ddd6; border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+  .panel { background: #f7f5f0; border: 1px solid #e0ddd6; border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
   .panel-title { font-size: 11px; font-weight: 700; color: #888780; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1rem; }
 
   .capacity-display { display: flex; align-items: baseline; gap: 0.4rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
@@ -28,7 +28,7 @@
 
   .control-group select {
     width: 100%; padding: 7px 28px 7px 10px; border: 1px solid #d3d1c7; border-radius: 8px;
-    background: #fff; font-size: 13px; color: #2c2c2a; appearance: none;
+    background: #f7f5f0; font-size: 13px; color: #2c2c2a; appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888780'/%3E%3C/svg%3E");
     background-repeat: no-repeat; background-position: right 10px center; cursor: pointer;
   }
@@ -54,17 +54,6 @@
   .toggle-sub { font-size: 11px; color: #888780; margin-top: 1px; }
 
   /* 鍋拡張アコーディオン */
-  .expand-toggle {
-    display: inline-flex; align-items: center; gap: 5px;
-    margin-top: 0.75rem; cursor: pointer; user-select: none;
-    font-size: 11px; font-weight: 600; color: #639922;
-    padding: 4px 10px; border-radius: 99px;
-    border: 1px solid #b5d98a; background: #f2f9ea;
-    transition: background 0.15s, border-color 0.15s;
-  }
-  .expand-toggle:hover { background: #e6f4d4; border-color: #8dc040; }
-  .expand-toggle .expand-ic { font-size: 10px; transition: transform 0.2s; }
-  .expand-toggle.open .expand-ic { transform: rotate(180deg); }
   .expand-area { display: none; margin-top: 0.75rem; }
   .expand-area.open { display: block; }
 
@@ -96,8 +85,8 @@
   th { padding: 5px 4px; font-weight: 600; font-size: 11px; color: #888780; cursor: pointer; user-select: none; white-space: nowrap; }
   th:hover { color: #2c2c2a; }
   th.num { text-align: right; }
-  tbody tr { border-bottom: 1px solid #f0ede6; transition: background 0.1s; }
-  tbody tr:hover { background: #f7f5f0; }
+  tbody tr { border-bottom: 1px solid #e8e5de; transition: background 0.1s; }
+  tbody tr:hover { background: #fff; }
   td { padding: 5px 4px; vertical-align: top; }
   td.num { text-align: right; vertical-align: middle; }
   td.mid { vertical-align: middle; }
@@ -121,6 +110,32 @@
   .sort-bold { font-weight: 700; }
   .sort-ic { font-size: 10px; margin-left: 2px; }
   .count-label { font-size: 12px; color: #888780; padding: 0.4rem 0.5rem 0; }
+
+  /* 食材フィルター */
+  .ing-filter-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .ing-btn {
+    position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px;
+    padding: 4px 8px; border-radius: 8px; border: 1px solid #e0ddd6;
+    background: #fff; cursor: pointer; min-width: 44px; transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .ing-btn.inc { background: #e6f4d4; border-color: #639922; }
+  .ing-btn.exc { background: #fcebeb; border-color: #e24b4a; }
+  .ing-btn .ing-badge {
+    position: absolute; top: -6px; right: -6px;
+    width: 16px; height: 16px; border-radius: 50%;
+    font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+  }
+  .ing-btn.inc .ing-badge { background: #639922; color: #fff; }
+  .ing-btn.exc .ing-badge { background: #e24b4a; color: #fff; }
+  .ing-btn .ing-e { font-size: 20px; line-height: 1; }
+  .ing-btn .ing-n { font-size: 9px; color: #888780; }
+  .ing-filter-summary { font-size: 11px; color: #888780; line-height: 1.6; min-height: 1.6em; }
+  .ing-reset {
+    margin-top: 8px; font-size: 11px; padding: 3px 12px; border-radius: 99px;
+    border: 1px solid #d3d1c7; background: transparent; color: #888780; cursor: pointer;
+  }
+  .ing-reset:hover { border-color: #888780; color: #2c2c2a; }
 </style>
 </head>
 <body>
@@ -152,7 +167,7 @@
           </label>
           <div>
             <div class="toggle-label" id="ticket-label">なし</div>
-            <div class="toggle-sub" id="ticket-sub">ボーナスなし</div>
+            <div class="toggle-sub" id="ticket-sub" style="display:none;"></div>
           </div>
         </div>
       </div>
@@ -184,9 +199,12 @@
       </div>
     </div>
 
-    <!-- 鍋拡張回数（オプション、アコーディオン） -->
-    <div class="expand-toggle" onclick="toggleExpand()" id="expand-toggle">
-      鍋容量を変更する（デフォルト：81）<span class="expand-ic">⌄</span>
+    <!-- 鍋拡張回数（チェックボックスで開閉） -->
+    <div style="margin-top:0.75rem;">
+      <label style="font-size:12px;color:#888780;display:flex;align-items:center;gap:6px;cursor:pointer;">
+        <input type="checkbox" id="chk-expand" onchange="toggleExpand()">
+        鍋容量を変更する（デフォルト：81）
+      </label>
     </div>
     <div class="expand-area" id="expand-area">
       <div class="control-group" style="max-width:280px; margin-top:0.5rem;">
@@ -206,6 +224,24 @@
         <input type="checkbox" id="chk-nofilter" onchange="updateCapacity()">
         鍋容量でフィルターしない（全件表示）
       </label>
+    </div>
+  </div>
+
+  <!-- 食材フィルター -->
+  <div class="panel" id="ing-filter-panel" style="padding: 0.6rem 1rem 0.6rem;">
+    <div class="panel-title" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0;">
+      <span>食材フィルター</span>
+      <div class="expand-toggle" onclick="toggleIngFilter()" id="ing-filter-toggle" style="margin-top:0;">
+        食材で絞り込む<span class="expand-ic" id="ing-filter-arrow">⌄</span>
+      </div>
+    </div>
+    <div id="ing-filter-area" style="display:none;margin-top:8px;">
+      <div style="font-size:11px;color:#888780;margin-bottom:8px;">タップで　なし → ○（含む）→ ✕（除外）と切り替え</div>
+      <div class="ing-filter-grid" id="ing-filter-grid"></div>
+      <div style="padding-top:8px;border-top:1px solid #e0ddd6;">
+        <div class="ing-filter-summary" id="ing-filter-summary">条件なし</div>
+        <button class="ing-reset" onclick="resetIngFilter()">リセット</button>
+      </div>
     </div>
   </div>
 
@@ -331,9 +367,8 @@ let currentFilter = 'all';
 
 function toggleExpand() {
   const area = document.getElementById('expand-area');
-  const toggle = document.getElementById('expand-toggle');
-  const isOpen = area.classList.toggle('open');
-  toggle.classList.toggle('open', isOpen);
+  const checked = document.getElementById('chk-expand').checked;
+  area.classList.toggle('open', checked);
 }
 
 function updateCapacity() {
@@ -344,7 +379,9 @@ function updateCapacity() {
   const tb = ticketBonus[base] || 35;
 
   document.getElementById('ticket-label').textContent = hasTicket ? 'あり' : 'なし';
-  document.getElementById('ticket-sub').textContent = hasTicket ? `+${tb} ボーナス` : 'ボーナスなし';
+  const subEl = document.getElementById('ticket-sub');
+  if(hasTicket) { subEl.textContent = `+${tb} ボーナス`; subEl.style.display = 'block'; }
+  else { subEl.textContent = ''; subEl.style.display = 'none'; }
 
   capacity = base + skillVal + (hasTicket ? tb : 0);
   document.getElementById('cap-num').textContent = noFilter ? '∞' : capacity;
@@ -376,6 +413,61 @@ function compare(a, b) {
   return (av - bv) * sortDir;
 }
 
+// 食材フィルター
+const ingList = [
+  {name:'ミツ',e:'🍯'},{name:'コーン',e:'🌽'},{name:'オイル',e:'🍾'},
+  {name:'カカオ',e:'🍫'},{name:'カボチャ',e:'🎃'},{name:'ポテト',e:'🥔'},
+  {name:'キノコ',e:'🍄‍🟫'},{name:'アボカド',e:'🥑'},{name:'ハーブ',e:'🌿'},
+  {name:'大豆',e:'🫘'},{name:'エッグ',e:'🥚'},{name:'トマト',e:'🍅'},
+  {name:'ミルク',e:'🥛'},{name:'ねぎ',e:'🎍'},{name:'ミート',e:'🍖'},
+  {name:'リンゴ',e:'🍎'},{name:'ジンジャー',e:'🫚'},{name:'コーヒー',e:'☕'},
+  {name:'おいしいシッポ',e:'🦎'},
+];
+const ingStates = {};
+ingList.forEach(i => ingStates[i.name] = 0);
+
+function toggleIngFilter() {
+  const area = document.getElementById('ing-filter-area');
+  const toggle = document.getElementById('ing-filter-toggle');
+  const arrow = document.getElementById('ing-filter-arrow');
+  const isOpen = area.style.display === 'none';
+  area.style.display = isOpen ? 'block' : 'none';
+  toggle.classList.toggle('open', isOpen);
+  if(isOpen) renderIngGrid();
+}
+
+function cycleIng(name) {
+  ingStates[name] = (ingStates[name] + 1) % 3;
+  renderIngGrid();
+  render();
+}
+
+function resetIngFilter() {
+  ingList.forEach(i => ingStates[i.name] = 0);
+  renderIngGrid();
+  render();
+}
+
+function renderIngGrid() {
+  const grid = document.getElementById('ing-filter-grid');
+  grid.innerHTML = ingList.map(({name, e}) => {
+    const s = ingStates[name];
+    const cls = s === 1 ? 'inc' : s === 2 ? 'exc' : '';
+    const badge = s === 1 ? '<span class="ing-badge">○</span>' : s === 2 ? '<span class="ing-badge">✕</span>' : '';
+    const dispName = name === 'おいしいシッポ' ? 'シッポ' : name;
+    return `<div class="ing-btn ${cls}" onclick="cycleIng('${name}')">${badge}<span class="ing-e">${e}</span><span class="ing-n">${dispName}</span></div>`;
+  }).join('');
+
+  const inc = ingList.filter(i => ingStates[i.name] === 1).map(i => i.name);
+  const exc = ingList.filter(i => ingStates[i.name] === 2).map(i => i.name);
+  let txt = '';
+  if(inc.length) txt += `○ ${inc.join('・')} のどれかを含む`;
+  if(inc.length && exc.length) txt += '　かつ　';
+  if(exc.length) txt += `✕ ${exc.join('・')} を含まない`;
+  if(!inc.length && !exc.length) txt = '条件なし';
+  document.getElementById('ing-filter-summary').textContent = txt;
+}
+
 const emojiMap = {
   'ミツ':'🍯','コーン':'🌽','オイル':'🍾','カカオ':'🍫',
   'カボチャ':'🎃','ポテト':'🥔','キノコ':'🍄‍🟫','アボカド':'🥑',
@@ -399,6 +491,14 @@ function render() {
   let d = [...raw];
   if(currentFilter !== 'all') d = d.filter(r => r.種類 === currentFilter);
   if(!noFilter) d = d.filter(r => r.食材数 <= capacity);
+
+  // 食材フィルター
+  const incNames = ingList.filter(i => ingStates[i.name] === 1).map(i => i.name);
+  const excNames = ingList.filter(i => ingStates[i.name] === 2).map(i => i.name);
+  const getNames = r => r.食材.split('\n').map(s => { const m = s.match(/^(.+?)\s+\d+$/); return m ? m[1] : ''; });
+  if(incNames.length) d = d.filter(r => { const ns = getNames(r); return incNames.some(n => ns.includes(n)); });
+  if(excNames.length) d = d.filter(r => { const ns = getNames(r); return !excNames.some(n => ns.includes(n)); });
+
   d.sort(compare);
 
   ['種類','料理名','食材','食材数','エナジー','ボーナス'].forEach(k => {
