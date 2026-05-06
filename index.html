@@ -760,47 +760,46 @@ function calcReverse() {
 
   if(baseWithTicket >= needed) {
     results.push({ label:'スキルなし', times:0, totalBonus:0, capacity: baseWithTicket });
-  }
-
-  function addSingleSkillResults(skills) {
-    if(skills.length === 0) return;
-    for(let times = 1; times <= 20; times++) {
-      const achievable = skills.filter(s => {
-        const total = baseWithTicket + s.bonus * times;
-        return total >= needed && total <= MAX_CAPACITY;
-      });
-      if(achievable.length > 0) {
-        const best = achievable.reduce((a,b) => a.bonus < b.bonus ? a : b);
-        const cap = baseWithTicket + best.bonus * times;
-        results.push({ label: `${best.label} × ${times}回`, times, totalBonus: best.bonus * times, capacity: cap });
+  } else {
+    function addSingleSkillResults(skills) {
+      if(skills.length === 0) return;
+      for(let times = 1; times <= 20; times++) {
+        const achievable = skills.filter(s => {
+          const total = baseWithTicket + s.bonus * times;
+          return total >= needed && total <= MAX_CAPACITY;
+        });
+        if(achievable.length > 0) {
+          const best = achievable.reduce((a,b) => a.bonus < b.bonus ? a : b);
+          const cap = baseWithTicket + best.bonus * times;
+          results.push({ label: `${best.label} × ${times}回`, times, totalBonus: best.bonus * times, capacity: cap });
+        }
+        const minBonus = Math.min(...skills.map(s => s.bonus));
+        if(baseWithTicket + minBonus * times > MAX_CAPACITY) break;
       }
-      const minBonus = Math.min(...skills.map(s => s.bonus));
-      if(baseWithTicket + minBonus * times > MAX_CAPACITY) break;
     }
-  }
+    addSingleSkillResults(powerSkills);
+    addSingleSkillResults(minusSkills);
 
-  addSingleSkillResults(powerSkills);
-  addSingleSkillResults(minusSkills);
-
-  if(powerSkills.length > 0 && minusSkills.length > 0) {
-    const minP = Math.min(...powerSkills.map(s => s.bonus));
-    const minM = Math.min(...minusSkills.map(s => s.bonus));
-    for(let pt = 1; pt <= 15; pt++) {
-      if(baseWithTicket + minP * pt > MAX_CAPACITY) break;
-      for(let mt = 1; mt <= 15; mt++) {
-        if(baseWithTicket + minP * pt + minM * mt > MAX_CAPACITY) break;
-        let found = null, foundBonus = Infinity;
-        for(const ps of powerSkills) {
-          for(const ms of minusSkills) {
-            const bonus = ps.bonus * pt + ms.bonus * mt;
-            const cap = baseWithTicket + bonus;
-            if(cap >= needed && cap <= MAX_CAPACITY && bonus < foundBonus) {
-              foundBonus = bonus; found = { ps, ms, bonus, cap };
+    if(powerSkills.length > 0 && minusSkills.length > 0) {
+      const minP = Math.min(...powerSkills.map(s => s.bonus));
+      const minM = Math.min(...minusSkills.map(s => s.bonus));
+      for(let pt = 1; pt <= 15; pt++) {
+        if(baseWithTicket + minP * pt > MAX_CAPACITY) break;
+        for(let mt = 1; mt <= 15; mt++) {
+          if(baseWithTicket + minP * pt + minM * mt > MAX_CAPACITY) break;
+          let found = null, foundBonus = Infinity;
+          for(const ps of powerSkills) {
+            for(const ms of minusSkills) {
+              const bonus = ps.bonus * pt + ms.bonus * mt;
+              const cap = baseWithTicket + bonus;
+              if(cap >= needed && cap <= MAX_CAPACITY && bonus < foundBonus) {
+                foundBonus = bonus; found = { ps, ms, bonus, cap };
+              }
             }
           }
-        }
-        if(found) {
-          results.push({ label: `${found.ps.label} × ${pt}回 ＋ ${found.ms.label} × ${mt}回`, times: pt + mt, totalBonus: found.bonus, capacity: found.cap });
+          if(found) {
+            results.push({ label: `${found.ps.label} × ${pt}回 ＋ ${found.ms.label} × ${mt}回`, times: pt + mt, totalBonus: found.bonus, capacity: found.cap });
+          }
         }
       }
     }
