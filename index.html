@@ -21,6 +21,31 @@
   .capacity-label { font-size: 13px; color: #888780; }
   .cap-note { font-size: 12px; color: #639922; font-weight: 600; }
 
+  /* タブ */
+  .tab-bar { display: flex; border-bottom: 2px solid #e0ddd6; margin-bottom: 1rem; }
+  .tab-btn {
+    flex: 1; padding: 10px 8px; font-size: 12px; font-weight: 600; text-align: center;
+    color: #888780; background: none; border: none; cursor: pointer;
+    border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s;
+  }
+  .tab-btn.active { color: #3b6d11; border-bottom-color: #3b6d11; }
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+
+  /* タブ2 */
+  .result-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .result-table thead tr { border-bottom: 2px solid #e0ddd6; }
+  .result-table th { padding: 7px 6px; font-weight: 600; font-size: 11px; color: #888780; text-align: left; white-space: nowrap; }
+  .result-table th.num { text-align: right; }
+  .result-table tbody tr { border-bottom: 1px solid #e8e5de; }
+  .result-table tbody tr:hover { background: #fff; }
+  .result-table td { padding: 7px 6px; vertical-align: middle; }
+  .result-table td.num { text-align: right; }
+  .ok-badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: #e6f4d4; color: #3b6d11; }
+  .recipe-select-wrap { margin-bottom: 1rem; }
+  .needed-label { font-size: 28px; font-weight: 700; color: #3b6d11; line-height: 1; }
+  .result-group-title { font-size: 11px; font-weight: 700; color: #888780; letter-spacing: 0.08em; margin: 1rem 0 0.5rem; }
+
   .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
   @media (max-width: 560px) { .controls-grid { grid-template-columns: 1fr; } }
 
@@ -144,6 +169,15 @@
   <h1>ポケモンスリープ レシピ一覧</h1>
 </header>
 
+<div style="max-width:1000px;margin:0 auto;padding:0.75rem 0.5rem 0;">
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tab-btn-1" onclick="switchTab(1)">🍳 レシピ一覧</button>
+    <button class="tab-btn"        id="tab-btn-2" onclick="switchTab(2)">🔍 逆引き：必要な鍋容量</button>
+  </div>
+</div>
+
+<!-- タブ1 -->
+<div class="tab-pane active" id="tab-1">
 <div class="container">
 
   <!-- 鍋設定パネル -->
@@ -248,10 +282,10 @@
   <!-- 種類フィルター -->
   <div class="filter-row">
     <span class="filter-label">絞り込み：</span>
-    <button class="chip chip-all active" id="btn-all"      onclick="filterType('all')">すべて</button>
-    <button class="chip chip-d"          id="btn-デザート"  onclick="filterType('デザート')">デザート</button>
-    <button class="chip chip-s"          id="btn-サラダ"    onclick="filterType('サラダ')">サラダ</button>
-    <button class="chip chip-c"          id="btn-カレー"    onclick="filterType('カレー')">カレー</button>
+    <button class="chip chip-all active" id="btn-all"      onclick="toggleType('all')">すべて</button>
+    <button class="chip chip-d"          id="btn-デザート"  onclick="toggleType('デザート')">デザート</button>
+    <button class="chip chip-s"          id="btn-サラダ"    onclick="toggleType('サラダ')">サラダ</button>
+    <button class="chip chip-c"          id="btn-カレー"    onclick="toggleType('カレー')">カレー</button>
   </div>
 
   <!-- テーブル -->
@@ -274,7 +308,105 @@
     <div class="count-label" id="count-label"></div>
   </div>
 
+</div><!-- /container -->
+</div><!-- /tab-1 -->
+
+<!-- タブ2 -->
+<div class="tab-pane" id="tab-2">
+<div class="container">
+
+  <div class="panel">
+    <div class="panel-title">レシピを選ぶ</div>
+    <div class="control-group recipe-select-wrap">
+      <select id="recipe-select" onchange="calcReverse()" style="font-size:13px;">
+        <option value="">── レシピを選択してください ──</option>
+      </select>
+    </div>
+    <div id="recipe-info" style="display:none;">
+      <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
+        <span class="needed-label" id="needed-num">-</span>
+        <span style="font-size:13px;color:#888780;">の食材数が必要</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">鍋の条件</div>
+    <div class="controls-grid">
+      <div class="control-group">
+        <span class="ctrl-label">キャンチケ</span>
+        <div class="toggle-row">
+          <label class="toggle-wrap">
+            <input type="checkbox" id="chk-ticket-r" onchange="calcReverse()">
+            <div class="toggle-track"></div>
+            <div class="toggle-thumb"></div>
+          </label>
+          <div>
+            <div class="toggle-label" id="ticket-label-r">なし</div>
+            <div class="toggle-sub" id="ticket-sub-r" style="display:none;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="ctrl-label">鍋拡張回数</span>
+        <select id="sel-expand-r" onchange="calcReverse()">
+          <option value="81">容量 81（4回拡張）</option>
+          <option value="78">容量 78（3回拡張）</option>
+          <option value="75">容量 75（2回拡張）</option>
+          <option value="72">容量 72（1回拡張）</option>
+          <option value="69">容量 69（拡張前）</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">スキルの絞り込み（任意）</div>
+    <div class="controls-grid">
+      <div class="control-group">
+        <span class="ctrl-label">料理パワーアップS</span>
+        <select id="sel-power-filter" onchange="calcReverse()">
+          <option value="">絞り込まない（全Lv）</option>
+          <option value="7">Lv1（+7）のみ</option>
+          <option value="10">Lv2（+10）のみ</option>
+          <option value="12">Lv3（+12）のみ</option>
+          <option value="17">Lv4（+17）のみ</option>
+          <option value="22">Lv5（+22）のみ</option>
+          <option value="27">Lv6（+27）のみ</option>
+          <option value="31">Lv7（+31）のみ</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <span class="ctrl-label">マイナス</span>
+        <select id="sel-minus-filter" onchange="calcReverse()">
+          <option value="">絞り込まない（全Lv）</option>
+          <option value="5">Lv1（+5）のみ</option>
+          <option value="7">Lv2（+7）のみ</option>
+          <option value="9">Lv3（+9）のみ</option>
+          <option value="12">Lv4（+12）のみ</option>
+          <option value="16">Lv5（+16）のみ</option>
+          <option value="20">Lv6（+20）のみ</option>
+          <option value="24">Lv7（+24）のみ</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div id="reverse-result" style="display:none;">
+    <div class="panel">
+      <div class="panel-title">達成できる組み合わせ</div>
+      <div id="result-summary" style="font-size:12px;color:#888780;margin-bottom:0.75rem;"></div>
+      <div id="result-groups"></div>
+    </div>
+  </div>
+  <div id="reverse-empty" style="display:none;">
+    <div class="panel" style="text-align:center;color:#888780;font-size:13px;padding:2rem;">
+      レシピを選択してください
+    </div>
+  </div>
+
 </div>
+</div><!-- /tab-2 -->
 
 <script>
 const raw = [
@@ -363,7 +495,7 @@ let capacity = 81;
 let noFilter = false;
 let sortKey = 'エナジー';
 let sortDir = -1;
-let currentFilter = 'all';
+let currentFilter = new Set();
 
 function toggleExpand() {
   const area = document.getElementById('expand-area');
@@ -389,10 +521,22 @@ function updateCapacity() {
   render();
 }
 
-function filterType(t) {
-  currentFilter = t;
-  document.querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
-  document.getElementById('btn-' + t).classList.add('active');
+function toggleType(t) {
+  if(t === 'all') {
+    currentFilter.clear();
+  } else {
+    if(currentFilter.has(t)) currentFilter.delete(t);
+    else currentFilter.add(t);
+    // 3つ全部ONになったら全件表示（すべて）に戻す
+    if(['デザート','サラダ','カレー'].every(k => currentFilter.has(k))) {
+      currentFilter.clear();
+    }
+  }
+  const allActive = currentFilter.size === 0;
+  document.getElementById('btn-all').classList.toggle('active', allActive);
+  ['デザート','サラダ','カレー'].forEach(k => {
+    document.getElementById('btn-' + k).classList.toggle('active', currentFilter.has(k));
+  });
   render();
 }
 
@@ -489,7 +633,7 @@ function ingHtml(str) {
 
 function render() {
   let d = [...raw];
-  if(currentFilter !== 'all') d = d.filter(r => r.種類 === currentFilter);
+  if(currentFilter.size > 0) d = d.filter(r => currentFilter.has(r.種類));
   if(!noFilter) d = d.filter(r => r.食材数 <= capacity);
 
   // 食材フィルター
@@ -524,6 +668,191 @@ function render() {
 }
 
 render();
+
+// ── タブ切り替え ──
+function switchTab(n) {
+  document.getElementById('tab-1').classList.toggle('active', n === 1);
+  document.getElementById('tab-2').classList.toggle('active', n === 2);
+  document.getElementById('tab-btn-1').classList.toggle('active', n === 1);
+  document.getElementById('tab-btn-2').classList.toggle('active', n === 2);
+}
+
+// ── タブ2：逆引き ──
+const skillDefs = [
+  { label:'スキルなし', bonus:0 },
+  { label:'料理パワーアップ Lv1', bonus:7 },
+  { label:'料理パワーアップ Lv2', bonus:10 },
+  { label:'料理パワーアップ Lv3', bonus:12 },
+  { label:'料理パワーアップ Lv4', bonus:17 },
+  { label:'料理パワーアップ Lv5', bonus:22 },
+  { label:'料理パワーアップ Lv6', bonus:27 },
+  { label:'料理パワーアップ Lv7', bonus:31 },
+  { label:'マイナス Lv1', bonus:5 },
+  { label:'マイナス Lv2', bonus:7 },
+  { label:'マイナス Lv3', bonus:9 },
+  { label:'マイナス Lv4', bonus:12 },
+  { label:'マイナス Lv5', bonus:16 },
+  { label:'マイナス Lv6', bonus:20 },
+  { label:'マイナス Lv7', bonus:24 },
+];
+const ticketBonusR = {69:35, 72:36, 75:38, 78:39, 81:41};
+const MAX_CAPACITY = 200;
+
+(function initRecipeSelect() {
+  const sel = document.getElementById('recipe-select');
+  const types = ['デザート','サラダ','カレー'];
+  types.forEach(k => {
+    const items = raw.filter(r => r.種類 === k && r.食材数 > 1).sort((a,b) => b.食材数 - a.食材数 || a.料理名.localeCompare(b.料理名,'ja'));
+    if(!items.length) return;
+    const og = document.createElement('optgroup');
+    og.label = k;
+    items.forEach(r => {
+      const opt = document.createElement('option');
+      opt.value = r.食材数;
+      opt.textContent = `${r.料理名}（食材数 ${r.食材数}）`;
+      og.appendChild(opt);
+    });
+    sel.appendChild(og);
+  });
+})();
+
+function calcReverse() {
+  const sel = document.getElementById('recipe-select');
+  const needed = parseInt(sel.value);
+  const base = parseInt(document.getElementById('sel-expand-r').value);
+  const hasTicket = document.getElementById('chk-ticket-r').checked;
+  const tb = ticketBonusR[base] || 35;
+
+  document.getElementById('ticket-label-r').textContent = hasTicket ? 'あり' : 'なし';
+  const subR = document.getElementById('ticket-sub-r');
+  if(hasTicket){ subR.textContent = `+${tb} ボーナス`; subR.style.display='block'; }
+  else { subR.textContent=''; subR.style.display='none'; }
+
+  if(!sel.value) {
+    document.getElementById('reverse-result').style.display = 'none';
+    document.getElementById('reverse-empty').style.display = 'block';
+    document.getElementById('recipe-info').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('recipe-info').style.display = 'block';
+  document.getElementById('needed-num').textContent = needed;
+  document.getElementById('reverse-empty').style.display = 'none';
+  document.getElementById('reverse-result').style.display = 'block';
+
+  const baseWithTicket = base + (hasTicket ? tb : 0);
+
+  // スキル絞り込み
+  const powerFilterVal = document.getElementById('sel-power-filter').value;
+  const minusFilterVal = document.getElementById('sel-minus-filter').value;
+
+  const allPowerSkills = skillDefs.filter(s => s.label.includes('料理パワーアップ') && s.bonus > 0);
+  const allMinusSkills = skillDefs.filter(s => s.label.includes('マイナス'));
+
+  const powerSkills = powerFilterVal
+    ? allPowerSkills.filter(s => s.bonus === parseInt(powerFilterVal))
+    : allPowerSkills;
+  const minusSkills = minusFilterVal
+    ? allMinusSkills.filter(s => s.bonus === parseInt(minusFilterVal))
+    : allMinusSkills;
+
+  const results = [];
+
+  if(baseWithTicket >= needed) {
+    results.push({ label:'スキルなし', times:0, totalBonus:0, capacity: baseWithTicket });
+  }
+
+  function addSingleSkillResults(skills) {
+    if(skills.length === 0) return;
+    for(let times = 1; times <= 20; times++) {
+      const achievable = skills.filter(s => {
+        const total = baseWithTicket + s.bonus * times;
+        return total >= needed && total <= MAX_CAPACITY;
+      });
+      if(achievable.length > 0) {
+        const best = achievable.reduce((a,b) => a.bonus < b.bonus ? a : b);
+        const cap = baseWithTicket + best.bonus * times;
+        results.push({ label: `${best.label} × ${times}回`, times, totalBonus: best.bonus * times, capacity: cap });
+      }
+      const minBonus = Math.min(...skills.map(s => s.bonus));
+      if(baseWithTicket + minBonus * times > MAX_CAPACITY) break;
+    }
+  }
+
+  addSingleSkillResults(powerSkills);
+  addSingleSkillResults(minusSkills);
+
+  if(powerSkills.length > 0 && minusSkills.length > 0) {
+    const minP = Math.min(...powerSkills.map(s => s.bonus));
+    const minM = Math.min(...minusSkills.map(s => s.bonus));
+    for(let pt = 1; pt <= 15; pt++) {
+      if(baseWithTicket + minP * pt > MAX_CAPACITY) break;
+      for(let mt = 1; mt <= 15; mt++) {
+        if(baseWithTicket + minP * pt + minM * mt > MAX_CAPACITY) break;
+        let found = null, foundBonus = Infinity;
+        for(const ps of powerSkills) {
+          for(const ms of minusSkills) {
+            const bonus = ps.bonus * pt + ms.bonus * mt;
+            const cap = baseWithTicket + bonus;
+            if(cap >= needed && cap <= MAX_CAPACITY && bonus < foundBonus) {
+              foundBonus = bonus; found = { ps, ms, bonus, cap };
+            }
+          }
+        }
+        if(found) {
+          results.push({ label: `${found.ps.label} × ${pt}回 ＋ ${found.ms.label} × ${mt}回`, times: pt + mt, totalBonus: found.bonus, capacity: found.cap });
+        }
+      }
+    }
+  }
+
+  const seen = new Set();
+  const deduped = results.filter(r => {
+    const key = `${r.capacity}-${r.times}`;
+    if(seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  deduped.sort((a,b) => a.times - b.times || a.capacity - b.capacity);
+
+  const expandLabels = {69:'前',72:'1回',75:'2回',78:'3回',81:'4回'};
+  document.getElementById('result-summary').textContent =
+    `ベース容量 ${baseWithTicket}（拡張${expandLabels[base]}${hasTicket ? '＋キャンチケ' : ''}） → 食材数 ${needed} を作るための最小スキル発動`;
+
+  const groups = document.getElementById('result-groups');
+  if(deduped.length === 0) {
+    groups.innerHTML = '<div style="color:#888780;font-size:13px;">上限200以内では達成できる組み合わせがありません</div>';
+    return;
+  }
+
+  groups.innerHTML = `
+    <div style="overflow-x:auto;">
+    <table class="result-table">
+      <thead>
+        <tr>
+          <th>スキルの組み合わせ</th>
+          <th class="num">合計回数</th>
+          <th class="num">追加ボーナス</th>
+          <th class="num">鍋容量</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${deduped.map(r => `
+          <tr>
+            <td>${r.label}</td>
+            <td class="num">${r.times > 0 ? r.times + '回' : '-'}</td>
+            <td class="num">${r.totalBonus > 0 ? '+' + r.totalBonus : '-'}</td>
+            <td class="num" style="font-weight:600;color:#3b6d11;">${r.capacity}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    </div>
+  `;
+}
+
+document.getElementById('reverse-empty').style.display = 'block';
 </script>
 </body>
 </html>
