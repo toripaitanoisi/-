@@ -1,0 +1,17 @@
+{
+  "name": "ポケモンスリープ レシピ一覧",
+  "short_name": "スリープレシピ",
+  "description": "食材数や鍋容量でレシピを絞り込める便利ツール",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b6d11",
+  "icons": [
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
